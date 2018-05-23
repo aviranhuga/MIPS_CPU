@@ -24,7 +24,7 @@ ARCHITECTURE structure OF MIPS IS
 			Memwrite 	: IN 	STD_LOGIC;
 			sevseg_sel  : IN    STD_LOGIC;
 			write_data 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
-			address 		: IN 	STD_LOGIC_VECTOR( 7 DOWNTO 0 );
+			address 	: IN 	STD_LOGIC_VECTOR( 7 DOWNTO 0 );
 			seven_seg0 	: out std_logic_vector(6 downto 0);
 			seven_seg1 	: out std_logic_vector(6 downto 0);
 			seven_seg2 	: out std_logic_vector(6 downto 0);
@@ -46,21 +46,21 @@ ARCHITECTURE structure OF MIPS IS
 				Instruction_out 	: OUT 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 				Instruction_in		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 				PC_plus_4_out_in 	: IN  	STD_LOGIC_VECTOR( 9 DOWNTO 0 );
-				PC_plus_4_out_out : OUT  	STD_LOGIC_VECTOR( 9 DOWNTO 0 );
+				PC_plus_4_out_out 	: OUT  	STD_LOGIC_VECTOR( 9 DOWNTO 0 );
 				RegDst_IF_OUT 		: OUT 	STD_LOGIC;
 				ALUSrc_IF_OUT 		: OUT 	STD_LOGIC;
 				MemtoReg_IF_OUT 	: OUT 	STD_LOGIC;
 				RegWrite_IF_OUT 	: OUT 	STD_LOGIC;
-				MemRead_IF_OUT 	: OUT 	STD_LOGIC;
+				MemRead_IF_OUT 		: OUT 	STD_LOGIC;
 				MemWrite_IF_OUT 	: OUT 	STD_LOGIC;
 				Branch_IF_OUT 		: OUT 	STD_LOGIC;
 				ALUop_IF_OUT 		: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
 				RegDst_IF_IN 		: IN 	STD_LOGIC;
 				ALUSrc_IF_IN 		: IN 	STD_LOGIC;
-				MemtoReg_IF_IN 	: IN 	STD_LOGIC;
-				RegWrite_IF_IN 	: IN 	STD_LOGIC;
+				MemtoReg_IF_IN 		: IN 	STD_LOGIC;
+				RegWrite_IF_IN 		: IN 	STD_LOGIC;
 				MemRead_IF_IN 		: IN 	STD_LOGIC;
-				MemWrite_IF_IN 	: IN 	STD_LOGIC;
+				MemWrite_IF_IN 		: IN 	STD_LOGIC;
 				Branch_IF_IN		: IN 	STD_LOGIC;
 				ALUop_IF_IN			: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
 				clock 				: IN 	STD_LOGIC );
@@ -99,6 +99,8 @@ ARCHITECTURE structure OF MIPS IS
 				MemRead_ID_OUT 		: OUT 	STD_LOGIC;
 				MemWrite_ID_OUT 	: OUT 	STD_LOGIC;
 				ALUop_ID_OUT 		: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
+				RegWrite_ID_OUT 	: OUT 	STD_LOGIC;
+				RegWrite_ID_IN 		: IN 	STD_LOGIC;
 				ALUSrc_ID_IN 		: IN 	STD_LOGIC;
 				MemtoReg_ID_IN 		: IN 	STD_LOGIC;
 				MemRead_ID_IN 		: IN 	STD_LOGIC;
@@ -124,6 +126,10 @@ ARCHITECTURE structure OF MIPS IS
 	COMPONENT  Execute
    	     PORT(	Read_data_1 		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
                 Read_data_2 		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				write_data_WB 		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				ALU_result_MEM 		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				ForwardA 			: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
+				ForwardB 			: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
                	Sign_Extend 		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
                	Function_opcode		: IN 	STD_LOGIC_VECTOR( 5 DOWNTO 0 );
                	ALUOp 				: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
@@ -152,6 +158,8 @@ ARCHITECTURE structure OF MIPS IS
 				MemRead_EX_OUT 		: OUT 	STD_LOGIC;
 				MemWrite_EX_OUT 	: OUT 	STD_LOGIC;
 				zero_OUT            : OUT   STD_LOGIC;
+				RegWrite_EX_OUT 	: OUT 	STD_LOGIC;
+				RegWrite_EX_IN 		: IN 	STD_LOGIC;
 				zero_IN             : IN    STD_LOGIC;
 				MemtoReg_EX_IN 		: IN 	STD_LOGIC;
 				MemRead_EX_IN 		: IN 	STD_LOGIC;
@@ -179,6 +187,8 @@ ARCHITECTURE structure OF MIPS IS
 				ALU_Result_in		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 				read_data_out 		: OUT 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 				read_data_in		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				RegWrite_MEM_OUT 	: OUT 	STD_LOGIC;
+				RegWrite_MEM_IN 	: IN 	STD_LOGIC;
 				MemtoReg_MEM_OUT 	: OUT 	STD_LOGIC;
 				MemtoReg_MEM_IN 	: IN 	STD_LOGIC;
 				clock 				: IN 	STD_LOGIC );
@@ -189,6 +199,17 @@ ARCHITECTURE structure OF MIPS IS
 				ALU_result			: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 				MemtoReg            : IN    STD_LOGIC;
 				write_data 			: OUT 	STD_LOGIC_VECTOR( 31 DOWNTO 0 ));
+	END COMPONENT;
+	
+	COMPONENT forwarding_unit
+	     PORT( 	EX_Instruction	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				MEM_Instruction : IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				WB_Instruction 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				MEM_RegWrite	: IN 	STD_LOGIC;
+				WB_RegWrite		: IN 	STD_LOGIC;
+				ForwardA 		: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
+				ForwardB 		: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
+				clock			: IN 	STD_LOGIC );
 	END COMPONENT;
 
 					-- declare signals used to connect VHDL components
@@ -211,6 +232,10 @@ ARCHITECTURE structure OF MIPS IS
 	SIGNAL Instruction		: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 	SIGNAL write_data_WB	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 	
+	--Forward Signals
+	SIGNAL ForwardA 		: STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+	SIGNAL ForwardB 		: STD_LOGIC_VECTOR(  1 DOWNTO 0 );
+	
 	--registers signals
 	--IF STAGE
 	SIGNAL Instruction_IFR	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
@@ -224,6 +249,7 @@ ARCHITECTURE structure OF MIPS IS
 	SIGNAL Branch_IFR  		: STD_LOGIC;
 	SIGNAL ALUop_IFR  		: STD_LOGIC_VECTOR( 1 DOWNTO 0 );
 	--ID STAGE
+	SIGNAL RegWrite_IDR 	: STD_LOGIC;
 	SIGNAL RegDst_IDR  		: STD_LOGIC;
 	SIGNAL Instruction_IDR	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 	SIGNAL read_data_1_IDR	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
@@ -237,6 +263,7 @@ ARCHITECTURE structure OF MIPS IS
 	SIGNAL Branch_IDR  		: STD_LOGIC;
 	SIGNAL ALUop_IDR  		: STD_LOGIC_VECTOR( 1 DOWNTO 0 );
 	--EX STAGE
+	SIGNAL RegWrite_EXR 	: STD_LOGIC;
 	SIGNAL RegDst_EXR  		: STD_LOGIC;
 	SIGNAL Instruction_EXR	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 	SIGNAL ALU_Result_EXR	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
@@ -248,6 +275,7 @@ ARCHITECTURE structure OF MIPS IS
 	SIGNAL MemWrite_EXR 	: STD_LOGIC;
 	SIGNAL Branch_EXR  		: STD_LOGIC;
 	--MEM STAGE
+	SIGNAL RegWrite_MEM 	: STD_LOGIC;
 	SIGNAL RegDst_MEM  		: STD_LOGIC;
 	SIGNAL Instruction_MEM	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 	SIGNAL ALU_Result_MEM	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
@@ -306,7 +334,7 @@ BEGIN
         		Instruction_read 	=> Instruction_IFR,
 				Instruction_write 	=> Instruction_MEM,
         		write_data 			=> write_data_WB,
-				RegWrite 			=> RegWrite_IFR,
+				RegWrite 			=> RegWrite_MEM,
 				RegDst 				=> RegDst_MEM,
 				Sign_extend 		=> Sign_extend,
         		clock 				=> clock,  
@@ -325,6 +353,8 @@ BEGIN
 				Sign_extend_in  	=> Sign_extend,
 				ALUSrc_ID_OUT 		=> ALUSrc_IDR,
 				RegDst_ID_OUT 		=> RegDst_IDR,
+				RegWrite_ID_OUT 	=> RegWrite_IDR,
+				RegWrite_ID_IN	 	=> RegWrite_IFR,
 				MemtoReg_ID_OUT 	=> MemtoReg_IDR,
 				MemRead_ID_OUT 		=> MemRead_IDR,
 				Branch_ID_OUT		=> Branch_IDR,
@@ -355,6 +385,10 @@ BEGIN
    EXE:  Execute
    	PORT MAP (	Read_data_1 	=> read_data_1_IDR,
              	Read_data_2 	=> read_data_2_IDR,
+				write_data_WB 	=> write_data_WB,
+				ALU_result_MEM 	=> ALU_Result_EXR,
+				ForwardA 		=> ForwardA,
+				ForwardB 		=> ForwardB,
 				Sign_extend 	=> Sign_extend_IDR,
                 Function_opcode	=> Instruction_IDR( 5 DOWNTO 0 ),
 				ALUOp 			=> ALUop_IDR,
@@ -378,6 +412,8 @@ BEGIN
 				Branch_EX_OUT		=> Branch_EXR,
 				RegDst_EX_OUT 		=> RegDst_EXR,
 				MemtoReg_EX_OUT 	=> MemtoReg_EXR,
+				RegWrite_EX_OUT 	=> RegWrite_EXR,
+				RegWrite_EX_IN	 	=> RegWrite_IDR,
 				MemRead_EX_OUT 		=> MemRead_EXR,
 				MemWrite_EX_OUT 	=> MemWrite_EXR,
 				zero_OUT			=> Zero_EXR,
@@ -405,6 +441,8 @@ BEGIN
 				ALU_Result_out	 	=> ALU_Result_MEM,
 				ALU_Result_in		=> ALU_Result_EXR,
 				read_data_out 		=> read_data_MEM,
+				RegWrite_MEM_OUT 	=> RegWrite_MEM,
+				RegWrite_MEM_IN	 	=> RegWrite_EXR,
 				RegDst_MEM_OUT 		=> RegDst_MEM,
 				RegDst_MEM_IN 		=> RegDst_EXR,
 				read_data_in		=> read_data,
@@ -417,12 +455,22 @@ BEGIN
 			   ALU_Result       => ALU_Result_MEM,
 			   MemtoReg         => MemtoReg_MEM,
 			   write_data       => write_data_WB );
+			   
+	FW: forwarding_unit
+	PORT MAP ( EX_Instruction	=> Instruction_IDR,
+			   MEM_Instruction  => Instruction_EXR,
+			   WB_Instruction 	=> Instruction_MEM,
+			   MEM_RegWrite	    => RegWrite_EXR,
+	           WB_RegWrite		=> RegWrite_MEM,
+	           ForwardA 		=> ForwardA,
+	           ForwardB 		=> ForwardB,
+	           clock			=> clock);
 				
 	IO_REG: IO_Register
 	PORT MAP ( 	clock           => clock,
 				MemWrite 		=> MemWrite_EXR,
 				sevseg_sel      => sevseg_sel,
-				write_data 		=> Instruction_EXR,
+				write_data 		=> read_data_2_EXR,
 				address 	    => ALU_Result_EXR (9 DOWNTO 2),--jump memory address by 4
 				seven_seg0      => seven_seg0,
 				seven_seg1		=> seven_seg1,

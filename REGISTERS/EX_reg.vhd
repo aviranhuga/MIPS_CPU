@@ -31,6 +31,8 @@ port (
 	RegDst_EX_OUT 		: OUT 	STD_LOGIC;
 	MemWrite_EX_OUT 	: OUT 	STD_LOGIC;
 	zero_OUT            : OUT   STD_LOGIC;
+	RegWrite_EX_OUT 	: OUT 	STD_LOGIC;
+	RegWrite_EX_IN 		: IN 	STD_LOGIC;
 	zero_IN             : IN    STD_LOGIC;
 	MemtoReg_EX_IN 		: IN 	STD_LOGIC;
 	MemRead_EX_IN 		: IN 	STD_LOGIC;
@@ -93,6 +95,7 @@ begin
 	RegDst:      DFF_for_reg port map(data => RegDst_EX_IN,clk=>clock, en=>one, q=>RegDst_EX_OUT);
 	MemtoReg:    DFF_for_reg port map(data => MemtoReg_EX_IN,clk=>clock, en=>one, q=>MemtoReg_EX_OUT);	
 	MemRead: 	 DFF_for_reg port map(data => MemRead_EX_IN,clk=>clock, en=>one, q=>MemRead_EX_OUT);
+	RegWrite: 	 DFF_for_reg port map(data => RegWrite_EX_IN,clk=>clock, en=>one, q=>RegWrite_EX_OUT);
 	MemWrite:    DFF_for_reg port map(data => MemWrite_EX_IN,clk=>clock, en=>one, q=>MemWrite_EX_OUT);
 	Branch:		 DFF_for_reg port map(data => Branch_EX_IN,clk=>clock, en=>one, q=>Branch_EX_OUT);
 	zero:      	 DFF_for_reg port map(data => zero_IN ,clk=>clock, en=>one, q=>zero_OUT);

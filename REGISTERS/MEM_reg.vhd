@@ -25,6 +25,8 @@ port (
 	read_data_in		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 	MemtoReg_MEM_OUT 	: OUT 	STD_LOGIC;
 	RegDst_MEM_OUT 		: OUT 	STD_LOGIC;
+	RegWrite_MEM_OUT 	: OUT 	STD_LOGIC;
+	RegWrite_MEM_IN 	: IN 	STD_LOGIC;
 	RegDst_MEM_IN 		: IN 	STD_LOGIC;
 	MemtoReg_MEM_IN 	: IN 	STD_LOGIC;
     clock 				: IN 	STD_LOGIC 
@@ -73,6 +75,7 @@ begin
 	
 -- control signals 
 	RegDst:      DFF_for_reg port map(data => RegDst_MEM_IN,clk=>clock, en=>one, q=>RegDst_MEM_OUT);
+	RegWrite: 	 DFF_for_reg port map(data => RegWrite_MEM_IN,clk=>clock, en=>one, q=>RegWrite_MEM_OUT);
 	MemtoReg:    DFF_for_reg port map(data => MemtoReg_MEM_IN,clk=>clock, en=>one, q=>MemtoReg_MEM_OUT);	
 		
 end MEM_Reg_arch;

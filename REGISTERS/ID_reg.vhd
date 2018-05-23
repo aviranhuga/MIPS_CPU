@@ -34,6 +34,8 @@ port (
 	RegDst_ID_OUT 		: OUT 	STD_LOGIC;
 	MemWrite_ID_OUT 	: OUT 	STD_LOGIC;
 	ALUop_ID_OUT 		: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
+	RegWrite_ID_OUT 	: OUT 	STD_LOGIC;
+	RegWrite_ID_IN 		: IN 	STD_LOGIC;
 	ALUSrc_ID_IN 		: IN 	STD_LOGIC;
 	MemtoReg_ID_IN 		: IN 	STD_LOGIC;
 	MemRead_ID_IN 		: IN 	STD_LOGIC;
@@ -104,7 +106,8 @@ begin
 -- control signals 
 	RegDst:      DFF_for_reg port map(data => RegDst_ID_IN,clk=>clock, en=>one, q=>RegDst_ID_OUT);
 	ALUSrc: 	 DFF_for_reg port map(data => ALUSrc_ID_IN,clk=>clock, en=>one, q=>ALUSrc_ID_OUT);	
-	MemtoReg:    DFF_for_reg port map(data => MemtoReg_ID_IN,clk=>clock, en=>one, q=>MemtoReg_ID_OUT);	
+	MemtoReg:    DFF_for_reg port map(data => MemtoReg_ID_IN,clk=>clock, en=>one, q=>MemtoReg_ID_OUT);
+	RegWrite: 	 DFF_for_reg port map(data => RegWrite_ID_IN,clk=>clock, en=>one, q=>RegWrite_ID_OUT);	
 	MemRead: 	 DFF_for_reg port map(data => MemRead_ID_IN,clk=>clock, en=>one, q=>MemRead_ID_OUT);
 	MemWrite:    DFF_for_reg port map(data => MemWrite_ID_IN,clk=>clock, en=>one, q=>MemWrite_ID_OUT);
 	Branch:		 DFF_for_reg port map(data => Branch_ID_IN,clk=>clock, en=>one, q=>Branch_ID_OUT);

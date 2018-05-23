@@ -35,11 +35,11 @@ BEGIN
    	write_register_address_0 	<= Instruction_write( 20 DOWNTO 16 );
    	Instruction_immediate_value <= Instruction_read( 15 DOWNTO 0 );
 					-- Read Register 1 Operation
-	read_data_1 <= register_array( 
-			      CONV_INTEGER( read_register_1_address ) );
+	--read_data_1 <= register_array( 
+	--		      CONV_INTEGER( read_register_1_address ) );
 					-- Read Register 2 Operation		 
-	read_data_2 <= register_array( 
-			      CONV_INTEGER( read_register_2_address ) );
+	--read_data_2 <= register_array( 
+	--		      CONV_INTEGER( read_register_2_address ) );
 					-- Mux for Register Write Address
     	write_register_address <= write_register_address_1 
 			WHEN RegDst = '1'  			ELSE write_register_address_0;
@@ -62,6 +62,17 @@ PROCESS
   		ELSIF RegWrite = '1' AND write_register_address /= 0 THEN
 		      register_array( CONV_INTEGER( write_register_address)) <= write_data;
 		END IF;
+	END PROCESS;
+	
+PROCESS
+	BEGIN
+		WAIT UNTIL clock'EVENT AND clock = '0';
+					-- Read Register 1 Operation
+	read_data_1 <= register_array( 
+			      CONV_INTEGER( read_register_1_address ) );
+					-- Read Register 2 Operation		 
+	read_data_2 <= register_array( 
+			      CONV_INTEGER( read_register_2_address ) );
 	END PROCESS;
 END behavior;
 

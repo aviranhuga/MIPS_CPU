@@ -8,6 +8,10 @@ USE IEEE.STD_LOGIC_SIGNED.ALL;
 ENTITY  Execute IS
 	PORT(	Read_data_1 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 			Read_data_2 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+			write_data_WB 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+			ALU_result_MEM 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+			ForwardA 		: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
+			ForwardB 		: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
 			Sign_extend 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 			Function_opcode : IN 	STD_LOGIC_VECTOR( 5 DOWNTO 0 );
 			ALUOp 			: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
@@ -31,11 +35,13 @@ component FPU_add_sub
 end component;
 
 
-SIGNAL Ainput, Binput 		: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
-SIGNAL ALU_output_mux		: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
-SIGNAL Branch_Add 			: STD_LOGIC_VECTOR( 7 DOWNTO 0 );
-SIGNAL ALU_ctl				: STD_LOGIC_VECTOR( 2 DOWNTO 0 );
-SIGNAL FPU_ADD_SUB_RESULT   : STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+SIGNAL Ainput, Binput 						: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+SIGNAL Ainput_Forward, Binput_Forward 		: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+SIGNAL ALU_output_mux						: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+SIGNAL Branch_Add 							: STD_LOGIC_VECTOR( 7 DOWNTO 0 );
+SIGNAL ALU_ctl								: STD_LOGIC_VECTOR( 2 DOWNTO 0 );
+SIGNAL FPU_ADD_SUB_RESULT   				: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+
 
 BEGIN
 		FPU_add_or_sub: FPU_add_sub
@@ -45,10 +51,19 @@ BEGIN
 		sub => Function_opcode( 0 ),
 		result => FPU_ADD_SUB_RESULT);
 		
+	with ForwardA select Ainput_Forward <= 
+		ALU_result_MEM WHEN "10",
+		write_data_WB  WHEN "01",
+		Read_data_1    WHEN others;
 		
-	Ainput <= Read_data_1;
+	with ForwardB select Binput_Forward <= 
+		ALU_result_MEM WHEN "10",
+		write_data_WB  WHEN "01",
+		Read_data_2    WHEN others;	
+		
+	Ainput <= Ainput_Forward;
 						-- ALU input mux
-	Binput <= Read_data_2 
+	Binput <= Binput_Forward 
 		WHEN ( ALUSrc = '0' ) 
   		ELSE  Sign_extend( 31 DOWNTO 0 );
 						-- Generate ALU control bits
