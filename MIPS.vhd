@@ -37,6 +37,7 @@ ARCHITECTURE structure OF MIPS IS
         		Add_result 			: IN 	STD_LOGIC_VECTOR( 7 DOWNTO 0 );
         		Branch 				: IN 	STD_LOGIC;
         		Zero 				: IN 	STD_LOGIC;
+				PC_Write         	: IN    STD_LOGIC;
         		PC_out 				: OUT 	STD_LOGIC_VECTOR( 9 DOWNTO 0 );
         		clock,reset 		: IN 	STD_LOGIC );
 	END COMPONENT; 
@@ -47,22 +48,7 @@ ARCHITECTURE structure OF MIPS IS
 				Instruction_in		: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
 				PC_plus_4_out_in 	: IN  	STD_LOGIC_VECTOR( 9 DOWNTO 0 );
 				PC_plus_4_out_out 	: OUT  	STD_LOGIC_VECTOR( 9 DOWNTO 0 );
-				RegDst_IF_OUT 		: OUT 	STD_LOGIC;
-				ALUSrc_IF_OUT 		: OUT 	STD_LOGIC;
-				MemtoReg_IF_OUT 	: OUT 	STD_LOGIC;
-				RegWrite_IF_OUT 	: OUT 	STD_LOGIC;
-				MemRead_IF_OUT 		: OUT 	STD_LOGIC;
-				MemWrite_IF_OUT 	: OUT 	STD_LOGIC;
-				Branch_IF_OUT 		: OUT 	STD_LOGIC;
-				ALUop_IF_OUT 		: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
-				RegDst_IF_IN 		: IN 	STD_LOGIC;
-				ALUSrc_IF_IN 		: IN 	STD_LOGIC;
-				MemtoReg_IF_IN 		: IN 	STD_LOGIC;
-				RegWrite_IF_IN 		: IN 	STD_LOGIC;
-				MemRead_IF_IN 		: IN 	STD_LOGIC;
-				MemWrite_IF_IN 		: IN 	STD_LOGIC;
-				Branch_IF_IN		: IN 	STD_LOGIC;
-				ALUop_IF_IN			: IN 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
+				IF_Write            : IN    STD_LOGIC;
 				clock 				: IN 	STD_LOGIC );
 	END COMPONENT;
 
@@ -120,7 +106,7 @@ ARCHITECTURE structure OF MIPS IS
              	MemWrite 			: OUT 	STD_LOGIC;
              	Branch 				: OUT 	STD_LOGIC;
              	ALUop 				: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
-             	clock, reset		: IN 	STD_LOGIC );
+             	clock, reset,stall_enable		: IN 	STD_LOGIC );
 	END COMPONENT;
 
 	COMPONENT  Execute
@@ -211,6 +197,14 @@ ARCHITECTURE structure OF MIPS IS
 				ForwardB 		: OUT 	STD_LOGIC_VECTOR( 1 DOWNTO 0 );
 				clock			: IN 	STD_LOGIC );
 	END COMPONENT;
+	
+	COMPONENT hazard_detection
+	     PORT( 	ID_Instruction	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				EX_Instruction 	: IN 	STD_LOGIC_VECTOR( 31 DOWNTO 0 );
+				EX_MemRead  	: IN 	STD_LOGIC;
+				stall_enable 	: OUT 	STD_LOGIC;
+				clock			: IN 	STD_LOGIC );
+	END COMPONENT;
 
 					-- declare signals used to connect VHDL components
 	SIGNAL PC_plus_4 		: STD_LOGIC_VECTOR( 9 DOWNTO 0 );
@@ -235,19 +229,12 @@ ARCHITECTURE structure OF MIPS IS
 	--Forward Signals
 	SIGNAL ForwardA 		: STD_LOGIC_VECTOR(  1 DOWNTO 0 );
 	SIGNAL ForwardB 		: STD_LOGIC_VECTOR(  1 DOWNTO 0 );
-	
+	--hazard_detection
+	SIGNAL stall_enable     : STD_LOGIC;
 	--registers signals
 	--IF STAGE
 	SIGNAL Instruction_IFR	: STD_LOGIC_VECTOR( 31 DOWNTO 0 );
     SIGNAL PC_plus_4_IFR  	: STD_LOGIC_VECTOR( 9 DOWNTO 0 );
-	SIGNAL RegDst_IFR  		: STD_LOGIC;
-	SIGNAL ALUSrc_IFR 		: STD_LOGIC;
-	SIGNAL MemtoReg_IFR 	: STD_LOGIC;
-	SIGNAL RegWrite_IFR 	: STD_LOGIC;
-	SIGNAL MemRead_IFR 		: STD_LOGIC;
-	SIGNAL MemWrite_IFR 	: STD_LOGIC;
-	SIGNAL Branch_IFR  		: STD_LOGIC;
-	SIGNAL ALUop_IFR  		: STD_LOGIC_VECTOR( 1 DOWNTO 0 );
 	--ID STAGE
 	SIGNAL RegWrite_IDR 	: STD_LOGIC;
 	SIGNAL RegDst_IDR  		: STD_LOGIC;
@@ -301,7 +288,8 @@ BEGIN
 				Add_result 		=> Add_Result_EXR,
 				Branch 			=> Branch_EXR,
 				Zero 			=> Zero_EXR,
-				PC_out 			=> PC,        		
+				PC_out 			=> PC,  
+				PC_Write		=> stall_enable,
 				clock 			=> clock,  
 				reset 			=> reset );
 				
@@ -310,22 +298,7 @@ BEGIN
 				Instruction_in		=> Instruction,
 				PC_plus_4_out_in 	=> PC_plus_4,
 				PC_plus_4_out_out 	=> PC_plus_4_IFR,
-				RegDst_IF_OUT 		=> RegDst_IFR,
-				ALUSrc_IF_OUT 		=> ALUSrc_IFR,
-				MemtoReg_IF_OUT 	=> MemtoReg_IFR,
-				RegWrite_IF_OUT 	=> RegWrite_IFR,
-				MemRead_IF_OUT 		=> MemRead_IFR,
-				MemWrite_IF_OUT 	=> MemWrite_IFR,
-				Branch_IF_OUT 		=> Branch_IFR,
-				ALUop_IF_OUT 		=> ALUop_IFR,
-				RegDst_IF_IN 		=> RegDst,
-				ALUSrc_IF_IN 		=> ALUSrc,
-				MemtoReg_IF_IN 		=> MemtoReg,
-				RegWrite_IF_IN 		=> RegWrite,
-				MemRead_IF_IN 		=> MemRead,
-				MemWrite_IF_IN 		=> MemWrite,
-				Branch_IF_IN		=> Branch,
-				ALUop_IF_IN			=> ALUop,
+				IF_Write            => stall_enable,
 				clock 				=> clock);
 
    ID : Idecode
@@ -354,23 +327,23 @@ BEGIN
 				ALUSrc_ID_OUT 		=> ALUSrc_IDR,
 				RegDst_ID_OUT 		=> RegDst_IDR,
 				RegWrite_ID_OUT 	=> RegWrite_IDR,
-				RegWrite_ID_IN	 	=> RegWrite_IFR,
+				RegWrite_ID_IN	 	=> RegWrite,
 				MemtoReg_ID_OUT 	=> MemtoReg_IDR,
 				MemRead_ID_OUT 		=> MemRead_IDR,
 				Branch_ID_OUT		=> Branch_IDR,
 				MemWrite_ID_OUT 	=> MemWrite_IDR,
 				ALUop_ID_OUT 		=> ALUop_IDR,
-				ALUSrc_ID_IN 		=> ALUSrc_IFR,
-				MemtoReg_ID_IN 		=> MemtoReg_IFR,
-				RegDst_ID_IN 		=> RegDst_IFR,
-				Branch_ID_IN		=> Branch_IFR,
-				MemRead_ID_IN 		=> MemRead_IFR,
-				MemWrite_ID_IN 		=> MemWrite_IFR,
-				ALUop_ID_IN			=> ALUop_IFR,
+				ALUSrc_ID_IN 		=> ALUSrc,
+				MemtoReg_ID_IN 		=> MemtoReg,
+				RegDst_ID_IN 		=> RegDst,
+				Branch_ID_IN		=> Branch,
+				MemRead_ID_IN 		=> MemRead,
+				MemWrite_ID_IN 		=> MemWrite,
+				ALUop_ID_IN			=> ALUop,
 				clock 				=> clock);			
 				
    CTL:   control
-	PORT MAP ( 	Opcode 			=> Instruction( 31 DOWNTO 26 ),
+	PORT MAP ( 	Opcode 			=> Instruction_IFR( 31 DOWNTO 26 ),
 				RegDst 			=> RegDst,
 				ALUSrc 			=> ALUSrc,
 				MemtoReg 		=> MemtoReg,
@@ -379,6 +352,7 @@ BEGIN
 				MemWrite 		=> MemWrite,
 				Branch 			=> Branch,
 				ALUop 			=> ALUop,
+				stall_enable    => stall_enable,
                 clock 			=> clock,
 				reset 			=> reset );
 
@@ -465,6 +439,14 @@ BEGIN
 	           ForwardA 		=> ForwardA,
 	           ForwardB 		=> ForwardB,
 	           clock			=> clock);
+				  
+	HD: hazard_detection
+	PORT MAP ( ID_Instruction   => Instruction_IFR,
+			   EX_Instruction   => Instruction_IDR,
+			   EX_MemRead       => MemRead_IDR,
+			   stall_enable     => stall_enable,
+			   clock            => clock );
+			   
 				
 	IO_REG: IO_Register
 	PORT MAP ( 	clock           => clock,

@@ -14,6 +14,7 @@ ENTITY Ifetch IS
         	SIGNAL Branch 			: IN 	STD_LOGIC;
         	SIGNAL Zero 			: IN 	STD_LOGIC;
       		SIGNAL PC_out 			: OUT	STD_LOGIC_VECTOR( 9 DOWNTO 0 );
+			SIGNAL PC_Write         : IN    STD_LOGIC;
         	SIGNAL clock, reset 	: IN 	STD_LOGIC);
 END Ifetch;
 
@@ -49,6 +50,7 @@ inst_memory: altsyncram
        	PC_plus_4( 1 DOWNTO 0 )  <= "00";
 						-- Mux to select Branch Address or PC + 4        
 		Next_PC  <= X"00" WHEN Reset = '1' ELSE
+			PC( 9 DOWNTO 2 ) WHEN  PC_Write='1' ELSE
 			Add_result  WHEN ( ( Branch = '1' ) AND ( Zero = '1' ) ) 
 			ELSE   PC_plus_4( 9 DOWNTO 2 );
 	PROCESS
@@ -56,10 +58,11 @@ inst_memory: altsyncram
 			WAIT UNTIL ( clock'EVENT ) AND ( clock = '1' );
 			IF reset = '1' THEN
 				   PC( 9 DOWNTO 2) <= "00000000" ; 
-			ELSE 
-				   PC( 9 DOWNTO 2 ) <= next_PC;
+			ELSE
+				   PC( 9 DOWNTO 2 ) <= next_PC ;
 			END IF;
 	END PROCESS;
+	
 END behavior;
 
 
